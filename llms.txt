@@ -1,0 +1,13 @@
+# Acme Developer Platform
+
+> The official documentation and API reference for the Acme automation toolkit.
+
+This file serves as a map for AI assistants. All secondary reference URLs can be found in our comprehensive index.
+
+## Getting Started
+- [Quickstart Guide](https://example.com): Step-by-step instructions to initialize the SDK and authenticate your client.
+- [Authentication](https://example.com): Explains JWT handling, scopes, and key rotation protocols.
+
+## Core Concepts
+- [Webhooks](https://example.com): Patterns and event payloads for building real-time data syncs.
+- [Error Codes](https://example.com): Complete troubleshooting matrix for 4xx and 5xx network exceptions.

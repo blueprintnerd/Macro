@@ -1,64 +1,125 @@
 import sys
-import os
-import json
-from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QHBoxLayout, QListWidget, QStackedWidget
-)
-from PyQt6.QtCore import QTimer
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QHBoxLayout, 
+                             QVBoxLayout, QPushButton, QStackedWidget, QLabel)
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont
 from pages.home import HomePage
 from pages.locations import LocationsPage
-from pages.music import MusicPage
-from pages.internet import InternetPage
-from pages.server import ServerPage
-from splash import show_splash
-class MainWindow(QMainWindow):
+from pages.finalizer import Finalizer
+
+class MainApp:
     def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Setup")
-        self.resize(800, 600)
+        self.app = QApplication([])
+        self.win = QMainWindow()
+        self.win.setWindowTitle("Macro Setup")
+        self.win.resize(900, 600)
+        self.central = QWidget()
+        self.win.setCentralWidget(self.central)
+        self.central.setStyleSheet("background-color: #121212; color: #ffffff;")
+        
+        self.main_layout = QHBoxLayout(self.central)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_layout.setSpacing(0)
 
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
+        self.sidebar = QWidget()
+        self.sidebar.setFixedWidth(220)
+        self.sidebar.setStyleSheet("background-color: #1a1a1a; border-right: 1px solid #2d2d2d;")
+        self.sidebar_layout = QVBoxLayout(self.sidebar)
+        self.sidebar_layout.setContentsMargins(15, 30, 15, 30)
+        self.sidebar_layout.setSpacing(10)
 
-        layout = QHBoxLayout(central_widget)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
+        # Logo / Title in Sidebar
+        logo_label = QLabel("Macro")
+        logo_label.setFont(QFont("Outfit", 22, QFont.Weight.Bold))
+        logo_label.setStyleSheet("color: #007acc; margin-bottom: 20px; padding-left: 5px;")
+        logo_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        # self.sidebar_layout.addWidget(logo_label)
 
-        self.sidebar = QListWidget()
-        self.sidebar.setFixedWidth(200)
+        # Content area StackedWidget
+        self.stacked_widget = QStackedWidget()
+        
+        # Instantiate pages
+        self.pages = {
+            "Home": HomePage(),
+            "Locations": LocationsPage(),
+            "Finish Setup": Finalizer()
+        }
 
-        self.content_area = QStackedWidget()
+        self.buttons = {}
+        self.setup_sidebar()
 
-        layout.addWidget(self.sidebar)
-        layout.addWidget(self.content_area)
+        for page in self.pages.values():
+            self.stacked_widget.addWidget(page)
 
-        self.add_page("Home", HomePage())
-        self.add_page("Locations", LocationsPage())
-        self.add_page("Music", MusicPage())
-        self.add_page("Internet", InternetPage())
-        self.add_page("Server", ServerPage())
+        self.main_layout.addWidget(self.sidebar)
+        self.main_layout.addWidget(self.stacked_widget)
+        
+        self.show_page("Home")
+        self.win.show()
 
-        self.sidebar.currentRowChanged.connect(self.content_area.setCurrentIndex)
-        self.sidebar.setCurrentRow(0)
+    def setup_sidebar(self):
+        for name in self.pages:
+            btn = QPushButton(name)
+            btn.setFont(QFont("Inter", 11, QFont.Weight.Medium))
+            btn.setStyleSheet("""
+                QPushButton {
+                    background-color: transparent;
+                    color: #aaaaaa;
+                    border: none;
+                    border-radius: 2px;
+                    padding: 4px 7px;
+                    text-align: left;
+                }
+                QPushButton:hover {
+                    background-color: #2a2a2a;
+                    color: #B8F397;
+                }
+            """)
+            btn.clicked.connect(lambda checked, n=name: self.show_page(n))
+            self.sidebar_layout.addWidget(btn)
+            self.buttons[name] = btn
 
-    def add_page(self, title, widget):
-        self.sidebar.addItem(title)
-        self.content_area.addWidget(widget)
+        self.sidebar_layout.addStretch()
+
+    def show_page(self, name):
+        page_widget = self.pages[name]
+        self.stacked_widget.setCurrentWidget(page_widget)
+
+        for btn_name, btn in self.buttons.items():
+            if btn_name == name:
+                btn.setStyleSheet("""
+                    QPushButton {
+                        background-color: #B8F397;
+                        color: #000000;
+                        border: none;
+                        border-radius: 6px;
+                        padding: 10px 15px;
+                        text-align: left;
+                        font-weight: bold;
+                    }
+                """)
+            else:
+                btn.setStyleSheet("""
+                    QPushButton {
+                        background-color: transparent;
+                        color: #aaaaaa;
+                        border: none;
+                        border-radius: 6px;
+                        padding: 10px 15px;
+                        text-align: left;
+                    }
+                    QPushButton:hover {
+                        background-color: #2a2a2a;
+                        color: #ffffff;
+                    }
+                """)
+
+    def run(self):
+        self.app.exec()
 
 def main():
-    from PyQt6.QtWidgets import QApplication
-    app = QApplication(sys.argv)
-    
-    splash = show_splash(app)
-    window = MainWindow()
-    
-    def show_main():
-        if splash:
-            splash.finish(window)
-        window.show()
-
-    QTimer.singleShot(3000, show_main)
-    sys.exit(app.exec())
+    app = MainApp()
+    app.run()
 
 if __name__ == "__main__":
     main()

@@ -1,5 +1,4 @@
-PyQt6
-mutagen
-os
-pathlib
 flask
+PyQt6
+fastapi
+uvicorn

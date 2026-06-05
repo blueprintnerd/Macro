@@ -8,16 +8,13 @@ from setup import main as run_gui
 def main():
     config_path = "config.json"
     
-    # Run GUI once if config doesn't exist
     if not os.path.exists(config_path):
         print("Starting...")
         run_gui()
-        # After GUI closes, check if config was created
         if not os.path.exists(config_path):
             print("Setup cancelled or failed.")
             return
 
-    # Start background services
     print("Setup detected. Running in background mode.")
     api_path = os.path.join(os.path.dirname(__file__), "background", "api.py")
     api_proc = subprocess.Popen([sys.executable, api_path])

@@ -1,9 +1,6 @@
 import json
 import os
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-    QListWidget, QLineEdit, QPushButton, QFileDialog
-)
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QLineEdit, QPushButton, QFileDialog
 from PyQt6.QtCore import Qt
 
 CONFIG_FILE = "config.json"
@@ -11,56 +8,122 @@ CONFIG_FILE = "config.json"
 class LocationsPage(QWidget):
     def __init__(self):
         super().__init__()
-        layout = QVBoxLayout(self)
-        
-        layout.addWidget(QLabel("Manage File Paths"))
+        self.paths = self.load_paths()
+        self.init_ui()
 
-        self.path_list = QListWidget()
-        layout.addWidget(self.path_list)
+    def init_ui(self):
+        layout = QVBoxLayout(self)
+
+        title = QLabel("Manage File Paths")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title)
+
+        self.list_widget = QListWidget()
+        layout.addWidget(self.list_widget)
+        self.update_list()
 
         input_layout = QHBoxLayout()
-        self.path_input = QLineEdit()
-        browse_btn = QPushButton("Browse")
-        add_btn = QPushButton("Add")
+        self.input_field = QLineEdit()
+        self.input_field.setPlaceholderText("Enter or browse folder path...")
+        self.input_field.setStyleSheet("""
+            QLineEdit {
+                background-color: #2a2a2a;
+                color: #ffffff;
+                border: 1px solid #444444;
+                border-radius: 6px;
+                padding: 10px 15px;
+                font-weight: bold;
+            }
+        """)
         
-        input_layout.addWidget(self.path_input)
+        browse_btn = QPushButton("Browse")
+        browse_btn.clicked.connect(self.browse)
+        browse_btn.setStyleSheet("""
+                    QPushButton {
+                        background-color: #B8F397;
+                        color: #000000;
+                        border: none;
+                        border-radius: 6px;
+                        padding: 10px 15px;
+                        text-align: left;
+                        font-weight: bold;
+                    }
+                """)
+
+        add_btn = QPushButton("Add")
+        add_btn.clicked.connect(self.add)
+        add_btn.setStyleSheet("""
+                    QPushButton {
+                        background-color: #B8F397;
+                        color: #000000;
+                        border: none;
+                        border-radius: 6px;
+                        padding: 10px 15px;
+                        text-align: left;
+                        font-weight: bold;
+                    }
+                """)
+
+        input_layout.addWidget(self.input_field)
         input_layout.addWidget(browse_btn)
         input_layout.addWidget(add_btn)
         layout.addLayout(input_layout)
 
-        remove_btn = QPushButton("Remove Selected")
-        layout.addWidget(remove_btn)
+        clear_btn = QPushButton("Clear All Paths")
+        clear_btn.clicked.connect(self.clear_paths)
+        layout.addWidget(clear_btn)
+        clear_btn.setStyleSheet("""
+                 QPushButton {
+                        background-color: #B8F397;
+                        color: #000000;
+                        border: none;
+                        border-radius: 6px;
+                        padding: 10px 15px;
+                        text-align: left;
+                        font-weight: bold;
+                    }
+        """)
 
-        browse_btn.clicked.connect(self.browse_path)
-        add_btn.clicked.connect(self.add_path)
-        remove_btn.clicked.connect(self.remove_path)
+    def update_list(self):
+        self.list_widget.clear()
+        for path in self.paths:
+            self.list_widget.addItem(path)
 
-        self.load_paths()
-
-    def browse_path(self):
-        path = QFileDialog.getExistingDirectory(self, "Select Directory")
+    def browse(self):
+        path = QFileDialog.getExistingDirectory(self, "Select Folder")
         if path:
-            self.path_input.setText(path)
+            self.input_field.setText(path)
 
-    def add_path(self):
-        path = self.path_input.text().strip()
-        if path:
-            self.path_list.addItem(path)
-            self.path_input.clear()
+    def add(self):
+        text = self.input_field.text().strip()
+        if text:
+            self.paths.append(text)
             self.save_paths()
+            self.update_list()
+            self.input_field.clear()
 
-    def remove_path(self):
-        for item in self.path_list.selectedItems():
-            self.path_list.takeItem(self.path_list.row(item))
+    def clear_paths(self):
+        self.paths = []
         self.save_paths()
+        self.update_list()
 
     def load_paths(self):
         if os.path.exists(CONFIG_FILE):
-            with open(CONFIG_FILE, "r") as f:
-                paths = json.load(f).get("paths", [])
-                self.path_list.addItems(paths)
+            try:
+                with open(CONFIG_FILE, "r") as f:
+                    return json.load(f).get("paths", [])
+            except Exception:
+                pass
+        return []
 
     def save_paths(self):
-        paths = [self.path_list.item(i).text() for i in range(self.path_list.count())]
+        config_data = {}
+        if os.path.exists(CONFIG_FILE):
+            try:
+                with open(CONFIG_FILE, "r") as f:
+                    config_data = json.load(f)
+            except Exception:
+                pass
+        config_data["paths"] = self.paths
         with open(CONFIG_FILE, "w") as f:
-            json.dump({"paths": paths}, f)
+            json.dump(config_data, f, indent=2)

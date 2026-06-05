@@ -3,10 +3,10 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QWid
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
-class ServerManagerWindow(QMainWindow):
+class DesktopClientWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Server Manager")
+        self.setWindowTitle("Macro Desktop Client")
         self.resize(800, 600)
         self.setStyleSheet("background-color: #121212; color: #ffffff;")
         
@@ -19,17 +19,16 @@ class ServerManagerWindow(QMainWindow):
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         # Label
-        label = QLabel("Server Manager")
+        label = QLabel("Macro Desktop Client")
         label.setFont(QFont("Arial", 20, QFont.Weight.Bold))
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(label)
 
-class ServerManager:
-    @staticmethod
-    def main_server_ui():
-        app = QApplication.instance()
-        if not app:
-            app = QApplication(sys.argv)
-        win = ServerManagerWindow()
-        win.show()
-        app.exec()
+def main():
+    app = QApplication(sys.argv)
+    win = DesktopClientWindow()
+    win.show()
+    sys.exit(app.exec())
+
+if __name__ == "__main__":
+    main()
