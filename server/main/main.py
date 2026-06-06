@@ -1,3 +1,4 @@
+from qt_material_icons import MaterialIcon
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget
 from PyQt6.QtCore import Qt
@@ -10,15 +11,12 @@ class ServerManagerWindow(QMainWindow):
         self.resize(800, 600)
         self.setStyleSheet("background-color: #121212; color: #ffffff;")
         
-        # Central widget
         central = QWidget()
         self.setCentralWidget(central)
         
-        # Layout
         layout = QVBoxLayout(central)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        # Label
         label = QLabel("Server Manager")
         label.setFont(QFont("Arial", 20, QFont.Weight.Bold))
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)

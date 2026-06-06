@@ -1,4 +1,7 @@
-flask
 PyQt6
+QtPy
+qt-material-icons
+flask
 fastapi
 uvicorn
+mutagen

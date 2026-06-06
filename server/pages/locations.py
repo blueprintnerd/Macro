@@ -1,9 +1,10 @@
+from qt_material_icons import MaterialIcon
 import json
 import os
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QLineEdit, QPushButton, QFileDialog
 from PyQt6.QtCore import Qt
 
-CONFIG_FILE = "config.json"
+CONFIG_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config.json")
 
 class LocationsPage(QWidget):
     def __init__(self):

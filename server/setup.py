@@ -1,3 +1,6 @@
+import os
+os.environ["QT_API"] = "pyqt6"
+from qt_material_icons import MaterialIcon
 import sys
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QHBoxLayout, 
                              QVBoxLayout, QPushButton, QStackedWidget, QLabel)
@@ -5,11 +8,12 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 from pages.home import HomePage
 from pages.locations import LocationsPage
+from pages.user_auth_setup import UserAuthSetupPage
 from pages.finalizer import Finalizer
 
 class MainApp:
     def __init__(self):
-        self.app = QApplication([])
+        self.app = QApplication.instance() or QApplication(sys.argv)
         self.win = QMainWindow()
         self.win.setWindowTitle("Macro Setup")
         self.win.resize(900, 600)
@@ -23,7 +27,7 @@ class MainApp:
 
         self.sidebar = QWidget()
         self.sidebar.setFixedWidth(220)
-        self.sidebar.setStyleSheet("background-color: #1a1a1a; border-right: 1px solid #2d2d2d;")
+        self.sidebar.setStyleSheet("background-color: #1a1a1a; border-right: 0px solid #2d2d2d;")
         self.sidebar_layout = QVBoxLayout(self.sidebar)
         self.sidebar_layout.setContentsMargins(15, 30, 15, 30)
         self.sidebar_layout.setSpacing(10)
@@ -42,6 +46,7 @@ class MainApp:
         self.pages = {
             "Home": HomePage(),
             "Locations": LocationsPage(),
+            "Setup accounts": UserAuthSetupPage(),
             "Finish Setup": Finalizer()
         }
 
