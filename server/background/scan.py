@@ -56,8 +56,7 @@ def scan():
     
     # Track which existing files are claimed
     claimed_ids = set()
-    
-    # 1. Match files by exact path first
+
     unmatched_scanned = []
     for scanned in scanned_files:
         path = scanned["path"]
@@ -77,8 +76,7 @@ def scan():
         else:
             unmatched_scanned.append(scanned)
 
-    # 2. For unmatched scanned files, look for matching deleted files by metadata
-    # Filter existing files to find those that are unclaimed
+
     unclaimed_deleted = [f for f in existing_files if f["id"] not in claimed_ids]
     
     def metadata_matches(s, e):

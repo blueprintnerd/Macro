@@ -70,8 +70,7 @@ class DashboardWidget(QWidget):
     def __init__(self, parent_window):
         super().__init__()
         self.parent_window = parent_window
-        
-        # Audio Player Setup
+        firefox
         self.player = QMediaPlayer()
         self.audio_output = QAudioOutput()
         self.player.setAudioOutput(self.audio_output)
