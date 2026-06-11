@@ -16,7 +16,7 @@ def scan():
     with open(config_path, "r") as f:
         paths = json.load(f).get("paths", [])
 
-    # Load existing tracked files
+    # Load 
     existing_files = []
     if os.path.exists(files_path):
         try:
@@ -27,7 +27,6 @@ def scan():
         except Exception:
             existing_files = []
 
-    # Get maximum ID assigned so far
     last_number = max([f["id"] for f in existing_files if "id" in f], default=0)
 
     # Scan directories to find current files and their metadata
@@ -53,8 +52,6 @@ def scan():
     existing_by_path = {f["path"]: f for f in existing_files}
     
     updated_files = []
-    
-    # Track which existing files are claimed
     claimed_ids = set()
 
     unmatched_scanned = []

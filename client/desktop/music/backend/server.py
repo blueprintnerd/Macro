@@ -10,6 +10,7 @@ served_html = """
 </head>
 <body>
     <h1>Macro Music is running</h1>
+    <p>Nothing is playing</p>
 </body>
 </html>
 """
@@ -23,4 +24,9 @@ def read_item(item_id: int):
     return {"item_id": item_id}
 
 @app.get("/up") 
-def up():z
+def up():
+    return {"message":f"{served_html}"}
+
+@app.get("/now_playing")
+def get_now_playing():
+    return {"message":"Not yet implemented"}

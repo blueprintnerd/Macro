@@ -7,13 +7,14 @@ import uvicorn
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 import os
-
+import json
+import sys\
 from background.sqlite import create_connection
 
 app = FastAPI(title="Macro API")
 security = HTTPBasic()
 
-def check_auth(credentials: HTTPBasicCredentials = Depends(security)):
+def verify_password(credentials: HTTPBasicCredentials):
     conn = create_connection()
     if conn is None:
         raise HTTPException(
@@ -56,25 +57,50 @@ def check_auth(credentials: HTTPBasicCredentials = Depends(security)):
     finally:
         conn.close()
 
+async def get_current_user(
+    request: Request, credentials: Optional[HTTPBasicCredentials] = Depends(security)
+):
+    if request.client.host in ("127.0.0.1", "localhost"):
+        conn = create_connection()
+        if conn is not None:
+            try:
+                cursor = conn.cursor()
+                cursor.execute("SELECT username FROM users")
+                users = cursor.fetchall()
+                if len(users) == 1:
+                    return users[0][0]
+            finally:
+                conn.close()
+
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="NoSSO failed or not applicable, Basic Auth required",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    
+    return verify_password(credentials)
+
 
 @app.get("/login")
-def login(username: str = Depends(check_auth)):
+def login(username: str = Depends(get_current_user)):
     return {"status": "authenticated", "username": username}
 
 @app.get("/status")
-def get_status(username: str = Depends(check_auth)):
+def get_status(username: str = Depends(get_current_user)):
     return {"status": "running", "service": "macro-backend"}
 
 @app.get("/art")
-def get_art(username: str = Depends(check_auth)):
+def get_art(username: str = Depends(get_current_user)):
     return "not yet implemented"
 
 @app.get("/files")
-def get_files(username: str = Depends(check_auth)):
+def get_files(username: str = Depends(get_current_user)):
     conn = create_connection()
     if conn is None:
         return []
     try:
+        import sqlite3
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM files")
@@ -84,7 +110,7 @@ def get_files(username: str = Depends(check_auth)):
         conn.close()
 
 @app.get("/stream/{file_id}")
-def stream_file(file_id: int, username: str = Depends(check_auth)):
+def stream_file(file_id: int, username: str = Depends(get_current_user)):
     conn = create_connection()
     if conn is None:
         raise HTTPException(status_code=500, detail="Database connection error")
@@ -99,7 +125,7 @@ def stream_file(file_id: int, username: str = Depends(check_auth)):
         conn.close()
 
 @app.get("/config")
-def get_config(username: str = Depends(check_auth)):
+def get_config(username: str = Depends(get_current_user)):
     conn = create_connection()
     if conn is None:
         return {"paths": [], "scan_interval": 3600}
@@ -114,7 +140,7 @@ def get_config(username: str = Depends(check_auth)):
 
 
 @app.post("/config")
-async def update_config(request: Request, username: str = Depends(check_auth)):
+async def update_config(request: Request, username: str = Depends(get_current_user)):
     data = await request.json()
     conn = create_connection()
     if conn is None:
@@ -127,6 +153,12 @@ async def update_config(request: Request, username: str = Depends(check_auth)):
         return {"message": "Config updated"}
     finally:
         conn.close()
+
+@app.get("/status")
+def fetch_status(username: str = Depends(get_current_user)):
+    ram_usage = os.popen('free -m').readlines()[-1].split()[1]0
+    return {"status": "running", "service": "macro-backend"}
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=1470)

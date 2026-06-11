@@ -9,7 +9,6 @@ from background.sqlite import create_connection, setup_database
 from tui_setup import run_tui_setup
 
 def is_setup_complete():
-    """Check if the essential setup has been completed in the database."""
     # Ensure the database and tables exist.
     setup_database()
     

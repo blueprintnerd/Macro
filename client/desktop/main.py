@@ -25,7 +25,6 @@ class LoginWidget(QWidget):
 
         self.url_input = QLineEdit("http://127.0.0.1:1470")
         layout.addWidget(self.url_input)
-
         self.user_input = QLineEdit()
         self.user_input.setPlaceholderText("Username")
         layout.addWidget(self.user_input)

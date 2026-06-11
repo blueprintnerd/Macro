@@ -1,5 +1,0 @@
-# Macro
-
-> Everything an AI needs to know about Macro
-
-Macro is a free plex alternative

@@ -6,7 +6,6 @@ import hashlib
 import secrets
 import sys
 
-# Add project root to path to allow for absolute imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from background.sqlite import create_connection, setup_database
@@ -39,7 +38,7 @@ def run_tui_setup():
         
         cursor.execute("INSERT OR REPLACE INTO users (username, hashed_password) VALUES (?, ?)", (username, hashed_password))
         print(f"User '{username}' created successfully.")
-
+        # TODO: Make the app less of a music only
         print("\n--- Music Folders ---")
         paths = []
         while True:

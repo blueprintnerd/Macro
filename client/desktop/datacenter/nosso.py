@@ -1,10 +1,9 @@
 import hashlib
 import sys
 import requests
-import PyQt6.QtWidgets as QtWidgets
-import os
+from PyQt6.QtWidgets import QApplication, QDialog, QVBoxLayout, QLabel, QHBoxLayout, QPushButton
 
-class NoSSO():
+class NoSSO:
     @staticmethod
     def CheckNoSSO():
         print("NoSSO is checking if this machine is compatible with NoSSO sign in")
@@ -18,27 +17,40 @@ class NoSSO():
                 pass
         print("NoSSO isn't compatible with your computer")
 
-class NoSSOUi():
+class NoSSOUi(QDialog):
     def __init__(self, app_name):
-        app = QtWidgets.QApplication(sys.argv)
-        window = QtWidgets.QWidget()
-        window.setWindowTitle("NoSSO Authorization")
+        super().__init__()
+        self.setWindowTitle("NoSSO Authorization")
         
-        layout = QtWidgets.QVBoxLayout()
-        title = QtWidgets.QLabel("NoSSO Authorization")
+        layout = QVBoxLayout()
+        title = QLabel("NoSSO Authorization")
         #TODO, create an image for the NoSSO authorization
-        redesc = QtWidgets.QLabel(f"Would you like to continue to {app_name}?")
+        redesc = QLabel(f"Would you like to authorize {app_name} to access your Macro server?")
         
-        button_layout = QtWidgets.QHBoxLayout()
-        button_yes = QtWidgets.QPushButton("Yes")
-        button_no = QtWidgets.QPushButton("No")
+        button_layout = QHBoxLayout()
+        small_text = QLabel("This will allow this app to access all of the files on your Macro server")
+        button_yes = QPushButton("Yes")
+        button_no = QPushButton("No")
         button_layout.addWidget(button_yes)
         button_layout.addWidget(button_no)
 
         layout.addWidget(title)
         layout.addWidget(redesc)
         layout.addLayout(button_layout)
+        self.setLayout(layout)
 
-        window.setLayout(layout)
-        window.show()
-        sys.exit(app.exec())
+        button_yes.clicked.connect(self.accept)
+        button_no.clicked.connect(self.reject)
+
+    @staticmethod
+    def run(app_name):
+        # Ensure a QApplication instance exists.
+        app = QApplication.instance()
+        if not app:
+            app = QApplication(sys.argv)
+            
+        dialog = NoSSOUi(app_name)
+        result = dialog.exec()
+        return result == QDialog.DialogCode.Accepted
+
+        #TODO: Make this app look more advanced than it acutally is

@@ -1,6 +1,7 @@
 import PyQt6.QtWidgets as QtWidgets
 import sys
 import requests
+from ..datacenter import nosso
 
 class Login_to_photos(QtWidgets.QWidget):
     def __init__(self, parent=None): 

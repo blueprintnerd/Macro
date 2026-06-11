@@ -2,6 +2,8 @@ import sys
 import os
 import sqlite3
 
+#TODO: Write functions to connect to each app without the API (NoSSO)
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from background.sqlite import create_connection, setup_database
@@ -24,6 +26,9 @@ def is_setup_complete():
         return True
     finally:
         conn.close()
+
+def noSSO():
+    print("NoSSO access has been handed over to th")
 
 def main():
     use_gui = os.environ.get("DISPLAY") is not None

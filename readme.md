@@ -15,4 +15,6 @@
 + After the first time setup, you can configure the app using the json file. 
 + to check the status, you can use the ```mserver status``` command
 
-### Screenshotz
+### Screenshots
+
+# TODO: Rewrite the entire MD file to document the new code
