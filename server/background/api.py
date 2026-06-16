@@ -10,8 +10,14 @@ import os
 import json
 import sys\
 from background.sqlite import create_connection
+from background.webdav import get_dav_app
+from a2wsgi import WSGIMiddleware
 
 app = FastAPI(title="Macro API")
+
+# Mount WebDAV
+app.mount("/dav", WSGIMiddleware(get_dav_app()))
+
 security = HTTPBasic()
 
 def verify_password(credentials: HTTPBasicCredentials):
