@@ -17,4 +17,11 @@
 
 ### Screenshots
 
-# TODO: Rewrite the entire MD file to document the new code
+### Modern Prototype
+We have developed a high-fidelity modern web prototype using React and Vanilla CSS.
+You can find the source code in the `prototype/` directory and the production build in `prototype/dist/`.
+
+To view the prototype:
+1. Navigate to the `prototype/` directory.
+2. Run `npm install` and `npm run dev` to start the development server.
+3. Or open `prototype/dist/index.html` (though a local server is recommended for some assets).

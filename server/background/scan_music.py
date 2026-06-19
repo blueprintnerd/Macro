@@ -1,4 +1,4 @@
-from qt_material_icons import MaterialIcon
+
 import mutagen
 from mutagen import File
 

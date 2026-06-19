@@ -16,7 +16,6 @@ def scan():
     with open(config_path, "r") as f:
         paths = json.load(f).get("paths", [])
 
-    # Load 
     existing_files = []
     if os.path.exists(files_path):
         try:
@@ -28,8 +27,6 @@ def scan():
             existing_files = []
 
     last_number = max([f["id"] for f in existing_files if "id" in f], default=0)
-
-    # Scan directories to find current files and their metadata
     scanned_files = []
     for path_str in paths:
         path = Path(path_str)
@@ -59,12 +56,10 @@ def scan():
         path = scanned["path"]
         if path in existing_by_path:
             existing = existing_by_path[path]
-            # Keep same ID, update details
             updated_entry = {
                 "id": existing["id"],
                 "path": path,
                 "name": scanned["name"],
-                "size": scanned["size"],
                 "metadata": scanned["metadata"],
                 "status": "present"
             }

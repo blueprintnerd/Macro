@@ -16,11 +16,6 @@ def create_connection():
     return conn
 
 def create_table(conn, create_table_sql):
-    """ create a table from the create_table_sql statement
-    :param conn: Connection object
-    :param create_table_sql: a CREATE TABLE statement
-    :return:
-    """
     try:
         c = conn.cursor()
         c.execute(create_table_sql)
@@ -48,8 +43,6 @@ def setup_database():
                                     username TEXT PRIMARY KEY,
                                     hashed_password TEXT NOT NULL
                                 );"""
-
-    # create a database connection
     conn = create_connection()
 
     # create tables
@@ -57,8 +50,6 @@ def setup_database():
         create_table(conn, sql_create_files_table)
         create_table(conn, sql_create_config_table)
         create_table(conn, sql_create_users_table)
-        
-        # Migrate data from JSON files
         migrate_data(conn)
         
         conn.close()

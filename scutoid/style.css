@@ -1,8 +1,13 @@
 .priceoffree {
     font-family: roboto;
+    font-size: x-large;
 }
-
 
 h3, h4, h5, h6 {
     font: roboto;
+}
+
+downloadbutton {
+    border-radius: 22px;
+    border: 0px;
 }

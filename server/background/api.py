@@ -8,15 +8,11 @@ from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 import os
 import json
-import sys\
+import sys
 from background.sqlite import create_connection
-from background.webdav import get_dav_app
-from a2wsgi import WSGIMiddleware
+
 
 app = FastAPI(title="Macro API")
-
-# Mount WebDAV
-app.mount("/dav", WSGIMiddleware(get_dav_app()))
 
 security = HTTPBasic()
 
@@ -81,7 +77,7 @@ async def get_current_user(
     if not credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="NoSSO failed or not applicable, Basic Auth required",
+            detail=" Basic Auth required",
             headers={"WWW-Authenticate": "Basic"},
         )
     

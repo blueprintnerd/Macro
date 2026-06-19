@@ -4,6 +4,3 @@ flask
 fastapi
 uvicorn
 mutagen
-wsgidav
-cheroot
-a2wsgi

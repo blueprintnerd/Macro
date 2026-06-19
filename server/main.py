@@ -3,10 +3,9 @@ import os
 import sys
 from background.api import app
 from background.sqlite import setup_database
-
+import subprocess
 def main():
     print("Macro Backend Starting...")
-    # Ensure database is initialized and migrated from any legacy config.json
     setup_database()
     
     print("\n-------------------------------------------------------")
