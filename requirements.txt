@@ -1,6 +1,0 @@
-streamlit
-requests
-flask
-fastapi
-uvicorn
-mutagen
