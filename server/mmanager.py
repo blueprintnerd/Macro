@@ -130,7 +130,11 @@ class Installer(Screen):
             dir_list.update(new_text)
             self.query_one("#filepath_input").value = ""
 
-class FilePaths():
+class FilePaths(Screen):
+    def compose(self) -> ComposeResult:
+        yield Static("Link your media files")
+        yield Input(placeholder="Enter a filepath")
+
 
 if __name__ == "__main__":
     app = MacroManager()
