@@ -1,15 +1,13 @@
 from textual.app import App, ComposeResult
 from textual.containers import VerticalScroll, Center, Middle, Vertical
-from textual.widgets import Footer, Header, Static, Button, Input
+from textual.widgets import Footer, Header, Static, Button, Input, RadioSet, RadioButton
 from textual.screen import Screen
 from textual import on
-import sys
-import requests
 import subprocess
+import httpx  # Switched to httpx for async non-blocking network calls
 
 class MacroManager(App):
     CSS_PATH = "style.tcss"
-
     def compose(self) -> ComposeResult:
         yield Header()
         with Vertical(id="main_container"):
@@ -43,13 +41,13 @@ class IPAuthScreen(Screen):
         yield Footer()
 
     def on_mount(self) -> None:
-        self.run_auth()
+        self.run_worker(self.run_auth())
 
     async def run_auth(self) -> None:
         status = self.query_one("#auth_status")
         try:
-            
-            response = requests.get(f"http://{self.ip_address}/name", timeout=5)
+            async with httpx.AsyncClient() as client:
+                response = await client.get(f"http://{self.ip_address}/name", timeout=5.0)
             if response.status_code == 200:
                 status.update(f"Connected to: {response.text}")
             else:
@@ -71,7 +69,7 @@ class Installer(Screen):
             yield Static("", id="install_log")
             
             yield Static("Configuration", classes="heading")
-            yield Input(placeholder="Enter a filepath to use with the server", id="filepath_input")
+            yield Input(placeholder="Enter a filepath to use with the server (If you don't know what to put her, type /)", id="filepath_input")
             yield Button("Add directory", id="add_dir_button")
             yield Static("", id="dir_list")
         yield Footer()
@@ -113,7 +111,6 @@ class Installer(Screen):
                 ["sudo", "-S", "apt", "update"],
                 input=password.encode(),
                 capture_output=True,
-                check=True
             )
             return True
         except subprocess.CalledProcessError:
@@ -134,19 +131,25 @@ class FilePaths(Screen):
         yield Static("Link your media files")
         yield Input(placeholder="Enter a filepath")
         yield Button("Add another filepath")
+
 class SemanticSearch(Screen):
-    def compose(self) -> ComposeResult():
-        yield Static("Select a search backend"
+    def compose(self) -> ComposeResult:
+        yield Static("Select a search backend")
         yield Static("This option can be changed later in settings")
         with RadioSet(id="search_backend"):
             yield RadioButton("Use Grep as a backend")
             yield RadioButton("Use a embedding model (Requires at least 4GB of ram)")
             yield RadioButton("Manually set uo keywords show results on search")
             yield RadioButton("Do not use search")
-        Button("Continue")
+        yield Button("Finish Setup")
+
+class Finalize_Setuo(Screen):
+    def compose(self) -> ComposeResult:
+        yield Static("Setup is completed")
+        yield Static("Macro will automatically start on reboot")
+        yield Button("Start service now")
+        yield Button("Exit")
 
 if __name__ == "__main__":
     app = MacroManager()
     app.run()
-
-
