@@ -1,0 +1,55 @@
+Screen {
+    align: center middle;
+}
+
+#main_container {
+    width: 60;
+    height: auto;
+    border: thick $primary;
+    padding: 1 2;
+    background: $surface;
+}
+
+#title {
+    text-align: center;
+    width: 100%;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+Input {
+    margin: 1 0;
+}
+
+Button {
+    width: 100%;
+    margin-top: 1;
+}
+
+.heading {
+    text-style: italic;
+    background: $accent;
+    color: $text;
+    padding: 0 1;
+    margin-top: 1;
+}
+
+#install_log, #dir_list {
+    background: $panel;
+    color: $text-muted;
+    margin: 1 0;
+    padding: 0 1;
+    min-height: 3;
+}
+
+IPAuthScreen Vertical {
+    width: 40;
+    height: auto;
+    border: solid $accent;
+    padding: 1 2;
+}
+
+#auth_status {
+    text-align: center;
+    margin-bottom: 1;
+}
