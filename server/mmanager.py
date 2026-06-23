@@ -136,7 +136,7 @@ class FilePaths(Screen):
         yield Button("Add another filepath")
 class SemanticSearch(Screen):
     def compose(self) -> ComposeResult():
-        yield Static("Select a search backend")
+        yield Static("Select a search backend"
         with RadioSet(id="search_backend"):
             yield RadioButton("Use Grep as a backend")
             yield RadioButton("Use a embedding model (Requires at least 4GB of ram)")
