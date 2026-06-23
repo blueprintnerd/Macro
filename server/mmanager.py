@@ -141,7 +141,8 @@ class SemanticSearch(Screen):
             yield RadioButton("Use Grep as a backend")
             yield RadioButton("Use a embedding model (Requires at least 4GB of ram)")
             yield RadioButton("Manually set uo keywords show results on search")
-            yield Radiozbutton("")
+            yield RadioButton(
+            )
 
 if __name__ == "__main__":
     app = MacroManager()
