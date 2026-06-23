@@ -135,7 +135,8 @@ class FilePaths(Screen):
         yield Input(placeholder="Enter a filepath")
         yield Button("Add another filepath")
 class SemanticSearch(Screen):
-    def compose(self) -> 
+    def compose(self) -> ComposeResult():
+        yield Static("Select a search backend")
 
 if __name__ == "__main__":
     app = MacroManager()
