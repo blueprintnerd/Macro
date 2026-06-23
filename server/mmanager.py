@@ -139,7 +139,7 @@ class SemanticSearch(Screen):
         yield Static("Select a search backend")
         with RadioSet(id="search_backend"):
             yield RadioButton("Use Grep as a backend")
-            yi 
+            yield 
 
 if __name__ == "__main__":
     app = MacroManager()
