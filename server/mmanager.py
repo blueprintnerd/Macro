@@ -143,6 +143,7 @@ class SemanticSearch(Screen):
             yield RadioButton("Use a embedding model (Requires at least 4GB of ram)")
             yield RadioButton("Manually set uo keywords show results on search")
             yield RadioButton("Do not use search")
+        
 
 if __name__ == "__main__":
     app = MacroManager()
