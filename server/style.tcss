@@ -13,7 +13,7 @@ Screen {
 #title {
     text-align: center;
     width: 100%;
-    text-style: bold;
+    text-style: italic;
     margin-bottom: 1;
 }
 
@@ -42,14 +42,46 @@ Button {
     min-height: 3;
 }
 
-IPAuthScreen Vertical {
-    width: 40;
+PortScannerScreen Vertical {
+    width: 50;
     height: auto;
     border: solid $accent;
     padding: 1 2;
 }
 
-#auth_status {
+#scan_status {
     text-align: center;
     margin-bottom: 1;
+}
+
+#scan_progress {
+    width: 100%;
+    margin: 1 0;
+}
+
+#found_list_container {
+    height: 10;
+    margin-top: 1;
+    padding: 0 1;
+    background: $panel;
+}
+
+#found_list_container Button {
+    margin: 0;
+    border: none;
+    height: 3;
+}
+
+#backend_description {
+    display: none;
+    height: auto;
+    border: solid $accent;
+    padding: 1;
+    margin-top: 1;
+    background: $panel;
+    color: $text;
+}
+
+#backend_description.visible {
+    display: block;
 }

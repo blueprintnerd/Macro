@@ -1,2 +1,2 @@
 # Macro
-### User friendly media server app
+### User friendly self hosting app
