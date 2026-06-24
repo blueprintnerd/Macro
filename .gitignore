@@ -1,2 +1,5 @@
 venv
 plan.md
+server/directory.json
+ignore.md
+server/mmanager.py
