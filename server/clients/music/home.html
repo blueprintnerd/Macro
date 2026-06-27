@@ -1,7 +1,16 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Macro Server</title>
+        <title>Macro Server - Music</title>
+        <style>
+            body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
+            #navbar { margin-bottom: 20px; }
+            button { background: #333; color: white; border: none; padding: 10px 20px; margin-right: 10px; cursor: pointer; }
+            button:hover { background: #444; }
+            .song-item { background: #1e1e1e; padding: 10px; margin-bottom: 5px; border-radius: 4px; }
+            .song-name { font-weight: bold; }
+            .song-artist { color: #aaa; font-size: 0.9em; }
+        </style>
     </head>
     <body>
         <div id="navbar">
@@ -11,5 +20,46 @@
             <button id="songs">Songs</button>
             <button id="playlists">Playlists</button>
         </div>
+        <h1 id="server-name">Macro Music</h1>
+        <div id="music-list">
+            Loading music...
+        </div>
+
+        <script>
+            async function fetchMusic() {
+                try {
+                    const response = await fetch('/api/library/music');
+                    const songs = await response.json();
+                    const list = document.getElementById('music-list');
+                    list.innerHTML = '';
+                    
+                    if (songs.length === 0) {
+                        list.innerHTML = 'No music found. Run a scan from the Manager.';
+                        return;
+                    }
+
+                    songs.forEach(song => {
+                        const div = document.createElement('div');
+                        div.className = 'song-item';
+                        div.innerHTML = `
+                            <div class="song-name">${song.name}</div>
+                            <div class="song-artist">${song.artist} - ${song.album}</div>
+                        `;
+                        list.appendChild(div);
+                    });
+                } catch (e) {
+                    document.getElementById('music-list').innerHTML = 'Error loading music.';
+                }
+            }
+
+            async function fetchConfig() {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                document.getElementById('server-name').innerText = config.name + " - Music";
+            }
+
+            fetchConfig();
+            fetchMusic();
+        </script>
     </body>
 </html>

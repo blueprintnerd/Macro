@@ -2,13 +2,36 @@ Screen {
     align: center middle;
 }
 
-#main_container {
+#main_container, #wizard_container, #dashboard_container {
     width: 60;
     height: auto;
     border: thick $primary;
     padding: 1 2;
     background: $surface;
 }
+
+#wizard_container {
+    border: thick $accent;
+}
+
+#dir_list_container {
+    height: 8;
+    margin: 1 0;
+    background: $panel;
+    border: solid $primary;
+}
+
+#dir_list_container Static {
+    padding: 0 1;
+}
+
+#backend_descripton {
+    margin: 1 0;
+    padding: 1;
+    background: $panel;
+    color: $text;
+}
+
 
 #title {
     text-align: center;

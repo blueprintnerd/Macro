@@ -3,15 +3,26 @@ from textual.containers import VerticalScroll, Center, Middle, Vertical
 from textual.widgets import Footer, Header, Static, Button, Input, RadioSet, RadioButton, ProgressBar
 from textual.screen import Screen
 from textual import on
+import json
+import socket
+import webbrowser
+import os
 import sys
 import asyncio
 import sqlite3
 import requests
 import subprocess
-import httpx  # Switched to httpx for async non-blocking network calls
-
+import httpx
 class MacroManager(App):
     CSS_PATH = "style.tcss"
+    def __init__(self):
+        super().__init__()
+        self.install_data = {
+            "server_name": "",
+            "directories": [],
+            "search_backend": "Disable search"
+        }
+
     def compose(self) -> ComposeResult:
         yield Header()
         with Vertical(id="main_container"):
@@ -25,22 +36,246 @@ class MacroManager(App):
     def on_signin(self) -> None:
         ip = self.query_one("#ip_input").value
         if ip == "localhost":
-                self.push_screen(LocalDashboard())
+            self.push_screen(LocalDashboard())
         elif ip:
             self.push_screen(PortScannerScreen(ip))
 
     @on(Button.Pressed, "#setup_button")
     def on_setup(self) -> None:
-        self.push_screen(Installer())
+        self.push_screen(ServerNameScreen())
+
+class ServerNameScreen(Screen):
+    def compose(self) -> ComposeResult:
+        yield Header()
+        with Vertical(id="wizard_container"):
+            yield Static("Step 1: Server Configuration", classes="heading")
+            yield Static("Choose a name for your Macro Server")
+            yield Input(placeholder="Enter server name", id="server_name_input")
+            yield Button("Continue", id="continue_button", variant="primary")
+        yield Footer()
+
+    @on(Button.Pressed, "#continue_button")
+    def next_step(self) -> None:
+        name = self.query_one("#server_name_input").value
+        if name:
+            self.app.install_data["server_name"] = name
+            self.app.push_screen(PrerequisitesScreen())
+        else:
+            self.notify("Please enter a server name")
+
+class PrerequisitesScreen(Screen):
+    def compose(self) -> ComposeResult:
+        yield Header()
+        with Vertical(id="wizard_container"):
+            yield Static("Step 2: Install Prerequisites", classes="heading")
+            yield Static("Enter your sudo password to install system packages")
+            yield Input(placeholder="Sudo password", password=True, id="sudo_password")
+            yield Button("Verify & Update", id="verify_button")
+            yield Static("", id="install_log")
+            yield Button("Continue", id="continue_button", variant="primary")
+            yield Button("Skip for now", id="skip_button")
+        yield Footer()
+
+    @on(Button.Pressed, "#verify_button")
+    def verify(self) -> None:
+        pwd = self.query_one("#sudo_password").value
+        log = self.query_one("#install_log")
+        if not pwd:
+            log.update("Please enter sudo password")
+            return
+        
+        log.update("Verifying sudo...")
+        if self.verify_sudo(pwd):
+            log.update("Updating package lists...")
+            if self.run_apt_update(pwd):
+                log.update("Package lists updated")
+            else:
+                log.update("Error updating packages")
+        else:
+            log.update("Sudo verification failed")
+
+    def verify_sudo(self, password: str) -> bool:
+        try:
+            proc = subprocess.run(["sudo", "-S", "echo", "verified"], input=password.encode(), capture_output=True, check=True)
+            return b"verified" in proc.stdout
+        except: return False
+
+    def run_apt_update(self, password: str) -> bool:
+        try:
+            subprocess.run(["sudo", "-S", "apt", "update"], input=password.encode(), capture_output=True)
+            return True
+        except: return False
+
+    @on(Button.Pressed, "#continue_button")
+    @on(Button.Pressed, "#skip_button")
+    def next_step(self) -> None:
+        self.app.push_screen(FilePathsScreen())
+
+class FilePathsScreen(Screen):
+    def compose(self) -> ComposeResult:
+        yield Header()
+        with Vertical(id="wizard_container"):
+            yield Static("Step 3: Media Directories", classes="heading")
+            yield Static("Add folders containing your music and videos")
+            yield Input(placeholder="Enter a filepath", id="filepath_input")
+            yield Button("Add Directory", id="add_dir_button")
+            yield VerticalScroll(id="dir_list_container")
+            yield Button("Continue", id="continue_button", variant="primary")
+        yield Footer()
+
+    @on(Button.Pressed, "#add_dir_button")
+    def add_directory(self) -> None:
+        path = self.query_one("#filepath_input").value
+        if path:
+            self.app.install_data["directories"].append(path)
+            self.query_one("#dir_list_container").mount(Static(path))
+            self.query_one("#filepath_input").value = ""
+
+    @on(Button.Pressed, "#continue_button")
+    def next_step(self) -> None:
+        self.app.push_screen(SearchBackendScreen())
+
+class SearchBackendScreen(Screen):
+    def compose(self) -> ComposeResult:
+        yield Header()
+        with Vertical(id="wizard_container"):
+            yield Static("Step 4: Search Configuration", classes="heading")
+            yield Static("Select a search backend")
+            with RadioSet(id="search_backend"):
+                yield RadioButton("Use Grep as a backend (Fastest option)")
+                yield RadioButton("Use a embedding model (Requires 4GB+ RAM)")
+                yield RadioButton("Manually set up keywords")
+                yield RadioButton("Disable search", value=True)
+            yield Static("", id="backend_descripton")
+            yield Button("Continue", id="continue_button", variant="primary")
+        yield Footer()
+
+    @on(RadioSet.Changed)
+    def update_description(self, event: RadioSet.Changed) -> None:
+        description = self.query_one("#backend_descripton")
+        backend = str(event.pressed.label)
+        self.app.install_data["search_backend"] = backend
+        
+        descriptions = {
+            "Use Grep as a backend (Fastest option)": "ripgrep will be used instead if it is found",
+            "Use a embedding model (Requires 4GB+ RAM)": "Understands natural language, power intensive",
+            "Manually set up keywords": "Allows you to show certain files at the top when certain keywords are used in search",
+            "Disable search": "Search will be disabled entirely."
+        }
+        description.update(descriptions.get(backend, ""))
+
+    @on(Button.Pressed, "#continue_button")
+    def next_step(self) -> None:
+        self.app.push_screen(FinishScreen())
+
+class FinishScreen(Screen):
+    def compose(self) -> ComposeResult:
+        yield Header()
+        with Vertical(id="wizard_container"):
+            yield Static("Final Step: Save & Finish", classes="heading")
+            yield Static("Click Finish to save your configuration and initialize databases.")
+            yield Button("Finish Installation", id="finish_button", variant="success")
+            yield Static("", id="status_log")
+        yield Footer()
+
+    @on(Button.Pressed, "#finish_button")
+    def finish(self) -> None:
+        log = self.query_one("#status_log")
+        try:
+            data = self.app.install_data
+            config_path = os.path.join(os.path.dirname(__file__), "config.txt")
+            with open(config_path, "w") as f:
+                f.write(data["server_name"])
+            
+            directory_path = os.path.join(os.path.dirname(__file__), "directory.json")
+            with open(directory_path, "w") as f:
+                json.dump({"directories": data["directories"], "search_backend": data["search_backend"]}, f)
+            
+            Functions.init_database()
+            log.update("Setup Complete!")
+            self.notify("Macro Server setup successfully!")
+            # Pop back to the main menu
+            self.set_timer(2, lambda: self.app.pop_screen()) # pop FinishScreen
+            self.set_timer(2, lambda: self.app.pop_screen()) # pop SearchBackend
+            self.set_timer(2, lambda: self.app.pop_screen()) # pop FilePaths
+            self.set_timer(2, lambda: self.app.pop_screen()) # pop Prerequisites
+            self.set_timer(2, lambda: self.app.pop_screen()) # pop ServerName
+        except Exception as e:
+            log.update(f"Error: {e}")
 
 class LocalDashboard(Screen):
     def __init__(self):
         super().__init__()
+        self.server_process = None
 
     def compose(self) -> ComposeResult:
         yield Header()
-        yield Static("app not yet implemented")
+        with Vertical(id="dashboard_container"):
+            yield Static("Local Macro Server Status", id="status_title")
+            yield Static("Checking status...", id="server_status")
+            yield Button("Start Server", id="start_stop_button", variant="success")
+            yield Button("Scan Now", id="scan_button", variant="primary")
+            yield Button("Open Client", id="open_browser_button")
+            yield Button("Back", id="back_button")
         yield Footer()
+
+    def on_mount(self) -> None:
+        self.check_server_status()
+
+    def check_server_status(self) -> None:
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(0.5)
+                running = s.connect_ex(('localhost', 5000)) == 0
+                self.update_ui(running)
+        except:
+            self.update_ui(False)
+
+    def update_ui(self, running: bool) -> None:
+        status = self.query_one("#server_status")
+        button = self.query_one("#start_stop_button")
+        if running:
+            status.update("Running on http://localhost:5000")
+            button.label = "Stop Server"
+            button.variant = "error"
+        else:
+            status.update("Stopped")
+            button.label = "Start Server"
+            button.variant = "success"
+
+    @on(Button.Pressed, "#scan_button")
+    def run_scanner(self) -> None:
+        scanner_path = os.path.join(os.path.dirname(__file__), "scanner.py")
+        subprocess.Popen([sys.executable, scanner_path])
+        self.notify("Scanner started in background")
+
+    @on(Button.Pressed, "#start_stop_button")
+    async def toggle_server(self) -> None:
+        status = self.query_one("#server_status")
+        if "Running" in str(status.renderable):
+            if self.server_process:
+                self.server_process.terminate()
+                self.server_process = None
+            else:
+                try:
+                    subprocess.run(["pkill", "-f", "app.py"])
+                except:
+                    pass
+            await asyncio.sleep(1)
+            self.check_server_status()
+        else:
+            server_path = os.path.join(os.path.dirname(__file__), "app.py")
+            self.server_process = subprocess.Popen([sys.executable, server_path])
+            await asyncio.sleep(2)
+            self.check_server_status()
+
+    @on(Button.Pressed, "#open_browser_button")
+    def open_browser(self) -> None:
+        webbrowser.open("http://localhost:5000")
+
+    @on(Button.Pressed, "#back_button")
+    def back(self) -> None:
+        self.app.pop_screen()
 
 class PortScannerScreen(Screen):
     def __init__(self, ip_address: str):
@@ -113,130 +348,17 @@ class PortScannerScreen(Screen):
             # For now, just show it's connected. In a real app, this would go to the dashboard.
             self.query_one("#scan_status").update(f"Connecting to port {port}...")
 
-class Installer(Screen):
-    def compose(self) -> ComposeResult:
-        yield Header()
-        with VerticalScroll():
-            yield Static("Server Configuration", classes="heading")
-            yield Input(placeholder="Enter server name", id="server_name_input")
-            
-            yield Static("Install Prerequisites", classes="heading")
-            yield Input(placeholder="Enter your sudo password", password=True, id="sudo_password")
-            yield Button("Start installing", id="install_button")
-            yield Static("", id="install_log")
-            
-            yield Static("File Directories", classes="heading")
-            yield Input(placeholder="Enter a filepath to use with the server", id="filepath_input")
-            yield Button("Add directory", id="add_dir_button")
-            yield Static("", id="dir_list")
-        yield Footer()
-
-    @on(Button.Pressed, "#install_button")
-    def start_install(self) -> None:
-        sudo_pwd = self.query_one("#sudo_password").value
-        server_name = self.query_one("#server_name_input").value
-        log = self.query_one("#install_log")
-        
-        if not server_name:
-            log.update("Please enter a server name")
-            return
-
-        if not sudo_pwd:
-            log.update("Please enter sudo password")
-            return
-
-        # Save server name
-        try:
-            config_path = os.path.join(os.path.dirname(__file__), "config.txt")
-            with open(config_path, "w") as f:
-                f.write(server_name)
-        except Exception as e:
-            log.update(f"Error saving config: {e}")
-            return
-
-        log.update("Verifying sudo...")
-        if self.verify_sudo(sudo_pwd):
-            log.update("Updating package lists...")
-            if self.run_apt_update(sudo_pwd):
-                log.update("Package lists updated")
-            else:
-                log.update("Error: Unable to update package lists.")
-        else:
-            log.update("Error: Sudo verification failed. Check password.")
-
-    def verify_sudo(self, password: str) -> bool:
-        try:
-            proc = subprocess.run(
-                ["sudo", "-S", "echo", "verified"],
-                input=password.encode(),
-                capture_output=True,
-                check=True
-            )
-            return b"verified" in proc.stdout
-        except subprocess.CalledProcessError:
-            return False
-
-    def run_apt_update(self, password: str) -> bool:
-        try:
-            subprocess.run(
-                ["sudo", "-S", "apt", "update"],
-                input=password.encode(),
-                capture_output=True,
-            )
-            return True
-        except subprocess.CalledProcessError:
-            return False
-
-    @on(Button.Pressed, "#add_dir_button")
-    def add_directory(self) -> None:
-        path = self.query_one("#filepath_input").value
-        dir_list = self.query_one("#dir_list")
-        if path:
-            current = dir_list.renderable
-            new_text = f"{current}\n{path}" if current else path
-            dir_list.update(new_text)
-            self.query_one("#filepath_input").value = ""
-
-class FilePaths(Screen):
-    def compose(self) -> ComposeResult:
-        yield Static("Link your media files")
-        yield Input(placeholder="Enter a filepath")
-        yield Button("-")
-        yield Button("Continue")
-
-class SemanticSearch(Screen):
-    def compose(self) -> ComposeResult:
-        yield Static("Select a search backend")
-        yield Static("Can be switched later in Macro Manager")
-        with RadioSet(id="search_backend"):
-            yield RadioButton("Use Grep as a backend (Fastest option)")
-            yield RadioButton("Use a embedding model (Requires 4GB+ RAM)")
-            yield RadioButton("Manually set uo keywords show results on search")
-            yield RadioButton("Disable search")
-        yield Static(id="backend_descripton")
-        yield Button("Continue")
-    @on(RadioSet.Changed)
-    def update_description(self, event: RadioSet.Changed) -> None:
-        description = self.query_one("#backend_description")
-        backend = str(event.pressed.label)
-        
-        descriptions = {
-            "Use Grep as a backend (Fastest option)": "ripgrep will be used instead if it is found",
-            "Use a embedding model (Requires 4GB+ RAM)": "Understands natural language, though power intensive and may be slower",
-            "Manually set uo keywords show results on search": "Allows you to manipulate search results for certain keywords",
-            "Disable search": "Search will be disabled entirely."
-        }
-        
-        description.update(descriptions.get(backend, ""))
-        description.add_class("visible")
 class Functions():
+    @staticmethod
     def init_database():
         #TOOD: Find out how to restrict each connection to use half of the CPUs threads
-        music_server_connection = sqlite3.connect("music.db")
-        video_server_connection = sqlite3.connect("video.db")
-        file_server_connection = sqlite3.connect("files.db")
-        photo_server_connection = sqlite.connect("photo.db")
-        communication_server_connection = sqlite3.connect("communications.db")
+        #TODO: Setup the code to add another table to the data if semantic search is enabled
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        music_server_connection = sqlite3.connect(os.path.join(base_dir, "music.db"))
+        video_server_connection = sqlite3.connect(os.path.join(base_dir, "video.db"))
+        file_server_connection = sqlite3.connect(os.path.join(base_dir, "files.db"))
+        photo_server_connection = sqlite3.connect(os.path.join(base_dir, "photo.db"))
+        communication_server_connection = sqlite3.connect(os.path.join(base_dir, "communications.db"))
 
         music_cursor = music_server_connection.cursor()
         video_cursor = video_server_connection.cursor()
@@ -244,11 +366,23 @@ class Functions():
         photo_cursor = photo_server_connection.cursor()
         chat_cursor = communication_server_connection.cursor()
 
-        music_cursor.execute("CREATE TABLE music(name, artist, album, playlist, number)")
-        video_cursor.execute("CREATE TABLE video(title, creator, resolution, number)")
-        file_cursor.execute("CREATE TABLE files(name, size, type, number)")
-        photo_cursor.execute("CREATE TABLE photos(album, name, person, number)")
-        communication_cursor.execute("CREATE TABLE chat(person, datetime, tags, number)")
+        music_cursor.execute("CREATE TABLE IF NOT EXISTS music(name, artist, album, playlist, number, play_count, lyrics)")
+        video_cursor.execute("CREATE TABLE IF NOT EXISTS video(title, creator, resolution, number, play_count)")
+        file_cursor.execute("CREATE TABLE IF NOT EXISTS files(name, size, type, number, play_count)")
+        photo_cursor.execute("CREATE TABLE IF NOT EXISTS photos(album, name, person, number, play_count)")
+        chat_cursor.execute("CREATE TABLE IF NOT EXISTS chat(person, datetime, tags, number, send_count)")
+        
+        music_server_connection.commit()
+        video_server_connection.commit()
+        file_server_connection.commit()
+        photo_server_connection.commit()
+        communication_server_connection.commit()
+        
+        music_server_connection.close()
+        video_server_connection.close()
+        file_server_connection.close()
+        photo_server_connection.close()
+        communication_server_connection.close()
 if __name__ == "__main__":
     app = MacroManager()
     app.run()

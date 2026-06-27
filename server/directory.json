@@ -1,17 +1,1 @@
-{
-    "main":"6300",
-    "video":"6301",
-    "music":"6302",
-    "drive": "6303",
-    "photos":"6304",
-    "two_way": "6310",
-    "server_info": [
-        "Macro Server",
-        "Songs: 0",
-        "Videos: 0",
-        "Photos: 0",
-        "Documents: 0",
-        "Free: 0/0"
-
-    ]
-}
+{"directories": ["/"], "search_backend": "Use Grep as a backend (Fastest option)"}
