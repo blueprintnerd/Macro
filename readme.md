@@ -1,4 +1,10 @@
 # Macro
 ### User friendly self hosting app
 
-#TODO: Clean up all of these code files (pmo sm)
+
+### Architecture
+I wrote the backend in C++ and the frontend in Python.
+
+# How to use
+### Setup
+  Run the mmanager.py file to get started
