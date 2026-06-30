@@ -1,1 +1,6 @@
-{"directories": ["/"], "search_backend": "Use Grep as a backend (Fastest option)"}
+{
+  "directories": [
+    "/"
+  ],
+  "search_backend": "Manually set up keywords"
+}

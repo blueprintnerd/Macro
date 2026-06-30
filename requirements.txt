@@ -1,5 +1,0 @@
-textual
-flask
-fastapi
-requests
-ffmpeg-python

@@ -36,6 +36,7 @@ def compress_to_spec(included_folders, backup_format, dta_or_efi):
             print("Defaulting to efi")
 
     elif backup_format == "zip":
-        print("dta_or_efi doesn't apply when using zip")
+        print("dta_or_efi doesn't apply when
+         using zip")
     else:
         print("No backup format specified. Defaulting to mbf")

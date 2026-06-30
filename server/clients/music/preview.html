@@ -1,50 +1,246 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>Macro Server</title>
-    </head>
-    <body>
-        <!--TODO: create a white aesthetic design in figma or smth-->
-        <div id="navbar">
-            <button id="sign_into_server">Enter</button>
-        </div>
-        <div id="name_cover">
-            <h1>Macro Server</h1>
-            <div id="call_to_action">
-                <button id="view_server">
-                    <button>Listen to music on Server</button>
-                </button>
-            </div>
-            <div id="artist_names">
-                <!--TODO: Find out how to put the artist name here from the sqlite code-->
-                <h1 id="most_played" class="artist_name">Atst1</h1>
-                <h2 id="second_most_played" class="artist_name">Artist Two</h2>
-                <h3 id="random_third_played"class="artist_name">A3</h3>
-            </div>
-            <p id="copyright">Macro by Scutoid (2026)</p>
-        </div>
-        <script>
-            let copyrighthtml = document.getElementById(copyright)
-        </script>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Macro Server</title>
+    <meta name="description" content="Your personal Macro media server — music, video, and more.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #000000;
+            --card: #000000;
+            --text: #ffffff;
+            --text-dim: #ffffff;
+            --accent: #ffffff;
+            --border: #ffffff;
+        }
 
-        <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-            .header {
-                font-family: 'Times New Roman';
-                font-size: 50px;
-                color: burlywood;
-                font-style: bold;
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Navbar ── */
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 5%;
+            border-bottom: 4px solid var(--border);
+            background: #000;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .nav-logo {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--text);
+            text-transform: uppercase;
+        }
+
+        #enter-btn {
+            background: #fff;
+            color: #000;
+            border: 2px solid #fff;
+            padding: 10px 24px;
+            border-radius: 0;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: none;
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+        #enter-btn:hover { background: #000; color: #fff; }
+
+        /* ── Hero ── */
+        #hero {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 5% 60px;
+            text-align: center;
+        }
+
+        .hero-eyebrow {
+            font-family: 'Roboto', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: #fff;
+            margin-bottom: 20px;
+            border: 2px solid #fff;
+            padding: 4px 12px;
+        }
+
+        #server-name {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: clamp(3rem, 10vw, 7rem);
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 20px;
+            color: var(--text);
+            text-transform: uppercase;
+        }
+
+        .hero-sub {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 1.4rem;
+            color: var(--text-dim);
+            max-width: 600px;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+
+        /* ── Artist bubbles ── */
+        #artist-names {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 48px;
+        }
+
+        .artist-chip {
+            background: #000;
+            border: 2px solid var(--border);
+            border-radius: 0;
+            padding: 8px 18px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #fff;
+            text-transform: uppercase;
+            font-family: 'Roboto', sans-serif;
+        }
+        .artist-chip.top { background: #fff; color: #000; border-color: #fff; }
+
+        /* ── CTA ── */
+        .cta-row {
+            display: flex;
+            gap: 16px;
+        }
+
+        .cta-btn {
+            padding: 16px 32px;
+            border-radius: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: none;
+            text-transform: uppercase;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .cta-primary {
+            background: #fff;
+            color: #000;
+            border: 2px solid #fff;
+        }
+        .cta-primary:hover { background: #000; color: #fff; }
+
+        .cta-secondary {
+            background: transparent;
+            color: #fff;
+            border: 2px solid #fff;
+        }
+        .cta-secondary:hover { background: #fff; color: #000; }
+
+        /* ── Footer ── */
+        footer {
+            text-align: center;
+            padding: 24px;
+            color: #fff;
+            font-size: 0.8rem;
+            border-top: 4px solid var(--border);
+            font-family: 'Roboto', sans-serif;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-logo">Macro</div>
+        <a href="/music/" id="enter-btn">Enter →</a>
+    </nav>
+
+    <main id="hero">
+        <p class="hero-eyebrow">Your personal media server</p>
+        <h1 id="server-name">Loading…</h1>
+        <p class="hero-sub">Self-hosted music and video streaming — your collection, your rules.</p>
+
+        <div id="artist-names">
+            <!-- Top artists loaded dynamically -->
+        </div>
+
+        <div class="cta-row">
+            <a href="/music/" class="cta-btn cta-primary">🎵 Listen to Music</a>
+            <a href="/video/" class="cta-btn cta-secondary">🎬 Watch Videos</a>
+        </div>
+    </main>
+
+    <footer>
+        <span id="copyright">Macro by Scutoid &copy; 2026</span>
+    </footer>
+
+    <script>
+        async function loadServerInfo() {
+            try {
+                const res = await fetch('/api/config');
+                const config = await res.json();
+                document.getElementById('server-name').textContent = config.name || 'Macro';
+                document.title = config.name || 'Macro Server';
+            } catch (e) {
+                document.getElementById('server-name').textContent = 'Macro';
             }
-            #view_server {
-                border-width: 4px;
-                border-color: #000000;
-                border-radius: 2px; 
-                background-color: whitesmoke;
-                font-family: Arial, Helvetica, sans-serif
-                }
-            body {
-                background-color: rgb(247, 226, 200);
-            }
-        </style>
-    </body>
+        }
+
+        async function loadTopArtists() {
+            try {
+                const res = await fetch('/api/library/music');
+                const songs = await res.json();
+
+                // Count artist occurrences
+                const counts = {};
+                songs.forEach(s => {
+                    const a = s.artist || 'Unknown Artist';
+                    counts[a] = (counts[a] || 0) + 1;
+                });
+
+                const sorted = Object.entries(counts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 6);
+
+                const container = document.getElementById('artist-names');
+                container.innerHTML = '';
+                sorted.forEach(([name], i) => {
+                    if (name === 'Unknown Artist') return;
+                    const chip = document.createElement('span');
+                    chip.className = 'artist-chip' + (i === 0 ? ' top' : '');
+                    chip.textContent = name;
+                    container.appendChild(chip);
+                });
+            } catch (e) {}
+        }
+
+        loadServerInfo();
+        loadTopArtists();
+    </script>
+</body>
 </html>

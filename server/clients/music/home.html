@@ -1,65 +1,481 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>Macro Server - Music</title>
-        <style>
-            body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
-            #navbar { margin-bottom: 20px; }
-            button { background: #333; color: white; border: none; padding: 10px 20px; margin-right: 10px; cursor: pointer; }
-            button:hover { background: #444; }
-            .song-item { background: #1e1e1e; padding: 10px; margin-bottom: 5px; border-radius: 4px; }
-            .song-name { font-weight: bold; }
-            .song-artist { color: #aaa; font-size: 0.9em; }
-        </style>
-    </head>
-    <body>
-        <div id="navbar">
-            <button id="home">Home</button>
-            <button id="artists">Artists</button>
-            <button id="album">Album</button>
-            <button id="songs">Songs</button>
-            <button id="playlists">Playlists</button>
-        </div>
-        <h1 id="server-name">Macro Music</h1>
-        <div id="music-list">
-            Loading music...
-        </div>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Macro - Music</title>
+    <meta name="description" content="Your personal music collection, self-hosted and streamed from your Macro server.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #000000;
+            --side-bg: #000000;
+            --card-bg: #000000;
+            --card-hover: #ffffff;
+            --accent: #ffffff;
+            --accent-hover: #ffffff;
+            --text: #ffffff;
+            --text-dim: #ffffff;
+            --border: #ffffff;
+        }
 
-        <script>
-            async function fetchMusic() {
-                try {
-                    const response = await fetch('/api/library/music');
-                    const songs = await response.json();
-                    const list = document.getElementById('music-list');
-                    list.innerHTML = '';
-                    
-                    if (songs.length === 0) {
-                        list.innerHTML = 'No music found. Run a scan from the Manager.';
-                        return;
-                    }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-                    songs.forEach(song => {
-                        const div = document.createElement('div');
-                        div.className = 'song-item';
-                        div.innerHTML = `
-                            <div class="song-name">${song.name}</div>
-                            <div class="song-artist">${song.artist} - ${song.album}</div>
-                        `;
-                        list.appendChild(div);
-                    });
-                } catch (e) {
-                    document.getElementById('music-list').innerHTML = 'Error loading music.';
+        body {
+            font-family: sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ── Sidebar ── */
+        #sidebar {
+            width: 240px;
+            background: var(--bg);
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-right: 2px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text);
+            text-transform: uppercase;
+        }
+
+        .nav-item {
+            font-family: 'Roboto', sans-serif;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 0;
+            transition: none;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: none;
+            width: 100%;
+            text-align: left;
+            text-transform: uppercase;
+        }
+        .nav-item:hover, .nav-item.active {
+            color: #000;
+            background: #fff;
+        }
+
+        .nav-divider {
+            height: 2px;
+            background: var(--border);
+            margin: 8px 0;
+        }
+
+        /* ── Search bar ── */
+        #search-container {
+            padding: 0 0 8px;
+        }
+        #search-input {
+            width: 100%;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 0;
+            color: var(--text);
+            padding: 8px 14px;
+            font-size: 0.85rem;
+            outline: none;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        /* ── Main content ── */
+        #main-content {
+            flex-grow: 1;
+            background: #000;
+            padding: 32px;
+            overflow-y: auto;
+            padding-bottom: 110px;
+        }
+
+        .btn-home {
+            font-family: 'Roboto', sans-serif;
+            background: none;
+            border: 2px solid #fff;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 0;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 24px;
+            transition: none;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+        .btn-home:hover { background: #fff; color: #000; }
+
+        #page-title {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 28px;
+        }
+
+        /* ── Song list ── */
+        .song-list-header {
+            display: grid;
+            grid-template-columns: 48px 1fr 1fr 80px;
+            padding: 10px 12px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #000;
+            background: #fff;
+            border: 2px solid #fff;
+            margin-bottom: 4px;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .song-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .song-row {
+            display: grid;
+            grid-template-columns: 48px 1fr 1fr 80px;
+            padding: 10px 12px;
+            border: 1px solid #fff;
+            border-radius: 0;
+            align-items: center;
+            cursor: pointer;
+            transition: none;
+            gap: 8px;
+            font-family: 'Roboto', sans-serif;
+        }
+        .song-row:hover { background: #fff; color: #000; }
+        .song-row.playing { border: 3px solid #fff; }
+        .song-row.playing .song-name { font-weight: 700; }
+
+        .song-number { color: inherit; font-size: 0.9rem; }
+
+        .song-info { display: flex; flex-direction: column; overflow: hidden; }
+        .song-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .song-artist { font-size: 0.82rem; margin-top: 2px; }
+        .song-album { font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .play-btn {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+        .play-btn span { font-size: 1.1rem; }
+
+        .empty-msg {
+            padding: 40px 20px;
+            text-align: center;
+            border: 2px solid #fff;
+            font-family: 'Times New Roman', Times, serif;
+        }
+        .empty-msg h2 { font-size: 2rem; margin-bottom: 8px; }
+
+        /* ── Player bar ── */
+        #player-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: #000;
+            border-top: 4px solid #fff;
+            display: none;
+            padding: 0 20px;
+            box-sizing: border-box;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+            gap: 16px;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .now-playing-info {
+            width: 240px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        #player-song-name { font-weight: 700; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; }
+        #player-artist-name { font-size: 0.85rem; margin-top: 2px; }
+
+        .player-controls {
+            flex-grow: 1;
+            max-width: 640px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .ctrl-btn {
+            background: none;
+            border: 2px solid #fff;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 8px;
+            border-radius: 0;
+            transition: none;
+            display: flex;
+            align-items: center;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 700;
+        }
+        .ctrl-btn:hover { background: #fff; color: #000; }
+        .ctrl-btn.play-pause {
+            background: #fff;
+            color: #000;
+            width: 44px;
+            height: 44px;
+            font-size: 1.2rem;
+            justify-content: center;
+        }
+
+        audio { width: 100%; height: 32px; filter: invert(1); }
+
+        .volume-control {
+            width: 150px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+        .volume-control input[type=range] {
+            flex-grow: 1;
+            accent-color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <div class="sidebar-logo">🎵 Macro</div>
+        <a href="/" class="btn-home" style="margin-bottom: 0; display: inline-flex;">← Dashboard</a>
+        <div class="nav-divider"></div>
+        <button class="nav-item active" id="nav-all" onclick="showAll()">
+            <span>🏠</span> All Music
+        </button>
+        <div class="nav-divider"></div>
+        <div id="search-container">
+            <input type="text" id="search-input" placeholder="🔍 Search..." oninput="filterSongs(this.value)">
+        </div>
+        <div class="nav-divider" style="margin-top: auto;"></div>
+        <div style="color: var(--text-dim); font-size: 0.75rem; padding: 8px 12px;">
+            <span id="library-count">Loading...</span>
+        </div>
+    </div>
+
+    <div id="main-content">
+        <h1 id="page-title">My Collection</h1>
+
+        <div class="song-list-header">
+            <span>#</span>
+            <span>Title</span>
+            <span>Album</span>
+            <span></span>
+        </div>
+        <div id="music-list" class="song-list">
+            <div class="empty-msg"><p>Loading...</p></div>
+        </div>
+    </div>
+
+    <div id="player-bar">
+        <div class="now-playing-info">
+            <div id="player-song-name"></div>
+            <div id="player-artist-name"></div>
+        </div>
+        <div class="player-controls">
+            <div class="controls-row">
+                <button class="ctrl-btn" id="btn-prev" title="Previous">⏮</button>
+                <button class="ctrl-btn play-pause" id="btn-play-pause" title="Play/Pause">▶</button>
+                <button class="ctrl-btn" id="btn-next" title="Next">⏭</button>
+            </div>
+            <audio id="audio-player" preload="auto"></audio>
+        </div>
+        <div class="volume-control">
+            <span>🔊</span>
+            <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="1">
+        </div>
+    </div>
+
+    <script>
+        const audioPlayer = document.getElementById('audio-player');
+        const playerBar = document.getElementById('player-bar');
+        const pSongName = document.getElementById('player-song-name');
+        const pArtistName = document.getElementById('player-artist-name');
+        const btnPlayPause = document.getElementById('btn-play-pause');
+        const volSlider = document.getElementById('volume-slider');
+
+        let allSongs = [];
+        let filteredSongs = [];
+        let currentIndex = -1;
+
+        // ── Volume ──
+        volSlider.addEventListener('input', () => {
+            audioPlayer.volume = parseFloat(volSlider.value);
+        });
+
+        // ── Play / Pause button ──
+        btnPlayPause.addEventListener('click', () => {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+            } else {
+                audioPlayer.pause();
+            }
+        });
+
+        audioPlayer.addEventListener('play', () => { btnPlayPause.textContent = '⏸'; });
+        audioPlayer.addEventListener('pause', () => { btnPlayPause.textContent = '▶'; });
+        audioPlayer.addEventListener('ended', () => playIndex(currentIndex + 1));
+
+        document.getElementById('btn-prev').addEventListener('click', () => {
+            playIndex(currentIndex > 0 ? currentIndex - 1 : filteredSongs.length - 1);
+        });
+        document.getElementById('btn-next').addEventListener('click', () => {
+            playIndex(currentIndex < filteredSongs.length - 1 ? currentIndex + 1 : 0);
+        });
+
+        // ── Play a song by index in filteredSongs ──
+        function playIndex(idx) {
+            if (idx < 0 || idx >= filteredSongs.length) return;
+            currentIndex = idx;
+            const song = filteredSongs[idx];
+            playSong(song.id, song.name, song.artist || 'Unknown Artist');
+            highlightRow(song.id);
+        }
+
+        function playSong(id, name, artist) {
+            audioPlayer.src = `/api/stream/music/${id}`;
+            pSongName.textContent = name;
+            pArtistName.textContent = artist;
+            playerBar.style.display = 'flex';
+            audioPlayer.play();
+        }
+
+        function highlightRow(id) {
+            document.querySelectorAll('.song-row').forEach(r => r.classList.remove('playing'));
+            const row = document.querySelector(`[data-id="${id}"]`);
+            if (row) row.classList.add('playing');
+        }
+
+        // ── Render songs ──
+        function renderSongs(songs) {
+            const list = document.getElementById('music-list');
+            list.innerHTML = '';
+
+            if (!songs || songs.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-msg">
+                        <h2>No music found</h2>
+                        <p>Run a scan from the Macro Manager to index your music files.</p>
+                    </div>`;
+                return;
+            }
+
+            songs.forEach((song, index) => {
+                const row = document.createElement('div');
+                row.className = 'song-row';
+                row.dataset.id = song.id;
+                row.onclick = () => {
+                    currentIndex = index;
+                    playSong(song.id, song.name, song.artist || 'Unknown Artist');
+                    highlightRow(song.id);
+                };
+                row.innerHTML = `
+                    <span class="song-number">${index + 1}</span>
+                    <div class="song-info">
+                        <span class="song-name">${escHtml(song.name)}</span>
+                        <span class="song-artist">${escHtml(song.artist || 'Unknown Artist')}</span>
+                    </div>
+                    <span class="song-album">${escHtml(song.album || '')}</span>
+                    <div class="play-btn"><span>▶</span></div>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function escHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str || '';
+            return d.innerHTML;
+        }
+
+        // ── Filter ──
+        function filterSongs(query) {
+            query = query.toLowerCase().trim();
+            if (!query) {
+                filteredSongs = [...allSongs];
+            } else {
+                filteredSongs = allSongs.filter(s =>
+                    (s.name || '').toLowerCase().includes(query) ||
+                    (s.artist || '').toLowerCase().includes(query) ||
+                    (s.album || '').toLowerCase().includes(query)
+                );
+            }
+            renderSongs(filteredSongs);
+        }
+
+        function showAll() {
+            document.getElementById('search-input').value = '';
+            filteredSongs = [...allSongs];
+            renderSongs(filteredSongs);
+        }
+
+        // ── Fetch ──
+        async function fetchMusic() {
+            try {
+                const res = await fetch('/api/library/music');
+                allSongs = await res.json();
+                filteredSongs = [...allSongs];
+                renderSongs(filteredSongs);
+                document.getElementById('library-count').textContent = `${allSongs.length} song${allSongs.length !== 1 ? 's' : ''}`;
+            } catch (e) {
+                document.getElementById('music-list').innerHTML = '<div class="empty-msg"><p>Error loading music.</p></div>';
+            }
+        }
+
+        async function fetchConfig() {
+            try {
+                const res = await fetch('/api/config');
+                const config = await res.json();
+                if (config.name) {
+                    document.getElementById('page-title').textContent = config.name;
+                    document.title = `Macro - ${config.name}`;
                 }
-            }
+            } catch (e) {}
+        }
 
-            async function fetchConfig() {
-                const response = await fetch('/api/config');
-                const config = await response.json();
-                document.getElementById('server-name').innerText = config.name + " - Music";
-            }
-
-            fetchConfig();
-            fetchMusic();
-        </script>
-    </body>
+        fetchConfig();
+        fetchMusic();
+    </script>
+</body>
 </html>

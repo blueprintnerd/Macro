@@ -1,110 +1,102 @@
 Screen {
+    background: #000000;
     align: center middle;
 }
 
 #main_container, #wizard_container, #dashboard_container {
-    width: 60;
+    width: 65;
     height: auto;
-    border: thick $primary;
-    padding: 1 2;
-    background: $surface;
+    border: solid #ffffff;
+    padding: 2 4;
+    background: #000000;
 }
-
-#wizard_container {
-    border: thick $accent;
-}
-
-#dir_list_container {
-    height: 8;
-    margin: 1 0;
-    background: $panel;
-    border: solid $primary;
-}
-
-#dir_list_container Static {
-    padding: 0 1;
-}
-
-#backend_descripton {
-    margin: 1 0;
-    padding: 1;
-    background: $panel;
-    color: $text;
-}
-
 
 #title {
     text-align: center;
     width: 100%;
-    text-style: italic;
+    text-style: bold;
+    color: #ffffff;
+    margin-bottom: 2;
+    /* Times New Roman would go here if supported by the backend */
+}
+
+.heading {
+    text-style: bold;
+    background: #ffffff;
+    color: #000000;
+    padding: 0 1;
     margin-bottom: 1;
 }
 
 Input {
     margin: 1 0;
+    border: tall #ffffff;
+    background: #000000;
+}
+
+Input:focus {
+    border: tall #ffffff;
 }
 
 Button {
     width: 100%;
     margin-top: 1;
+    background: #000000;
+    color: #ffffff;
+    border: solid #ffffff;
 }
 
-.heading {
-    text-style: italic;
-    background: $accent;
-    color: $text;
+Button:hover {
+    background: #ffffff;
+    color: #000000;
+}
+
+Button.-primary {
+    background: #000000;
+    border: double #ffffff;
+}
+
+Button.-success {
+    background: #000000;
+    border: double #ffffff;
+}
+
+Button.-error {
+    background: #000000;
+    border: double #ffffff;
+}
+
+#dir_list_container {
+    height: 8;
+    margin: 1 0;
+    background: #000000;
+    border: solid #ffffff;
+}
+
+#dir_list_container Static {
     padding: 0 1;
-    margin-top: 1;
+    color: #ffffff;
 }
 
-#install_log, #dir_list {
-    background: $panel;
-    color: $text-muted;
+#backend_descripton {
+    margin: 1 0;
+    padding: 1;
+    background: #000000;
+    color: #ffffff;
+    border: solid #ffffff;
+}
+
+#status_log, #install_log {
+    background: #000000;
+    color: #ffffff;
     margin: 1 0;
     padding: 0 1;
     min-height: 3;
+    border: solid #ffffff;
 }
 
-PortScannerScreen Vertical {
-    width: 50;
-    height: auto;
-    border: solid $accent;
-    padding: 1 2;
-}
-
-#scan_status {
+#server_status {
     text-align: center;
-    margin-bottom: 1;
-}
-
-#scan_progress {
-    width: 100%;
     margin: 1 0;
-}
-
-#found_list_container {
-    height: 10;
-    margin-top: 1;
-    padding: 0 1;
-    background: $panel;
-}
-
-#found_list_container Button {
-    margin: 0;
-    border: none;
-    height: 3;
-}
-
-#backend_description {
-    display: none;
-    height: auto;
-    border: solid $accent;
-    padding: 1;
-    margin-top: 1;
-    background: $panel;
-    color: $text;
-}
-
-#backend_description.visible {
-    display: block;
+    color: #ffffff;
 }

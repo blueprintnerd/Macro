@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Macro Server - Dashboard</title>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+        <style>
+            :root {
+                --bg: #000000;
+                --card-bg: #000000;
+                --accent: #ffffff;
+                --text: #ffffff;
+                --text-dim: #ffffff;
+            }
+            body { 
+                font-family: sans-serif; 
+                background: var(--bg); 
+                color: var(--text); 
+                margin: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+            }
+            .container {
+                text-align: center;
+                width: 90%;
+                max-width: 1000px;
+            }
+            h1 { font-family: 'Times New Roman', Times, serif; font-size: 3.5rem; margin-bottom: 0.5rem; }
+            p { font-family: 'Times New Roman', Times, serif; color: var(--text-dim); margin-bottom: 3rem; font-size: 1.2rem; }
+            
+            .grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 2rem;
+            }
+            
+            .card {
+                background: var(--card-bg);
+                border: 2px solid #ffffff;
+                border-radius: 0;
+                padding: 2.5rem;
+                text-decoration: none;
+                color: inherit;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                font-family: 'Roboto', sans-serif;
+            }
+            
+            .card:hover {
+                background: #ffffff;
+                color: #000000;
+            }
+            
+            .icon {
+                font-size: 4rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .card h2 { margin: 0; font-size: 1.5rem; text-transform: uppercase; font-weight: 700; }
+            .card span { margin-top: 0.5rem; font-size: 0.9rem; }
+            
+            #server-name {
+                color: #ffffff;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Welcome to <span id="server-name">Macro</span></h1>
+            <p>Your personal media hub, self-hosted and secure.</p>
+            
+            <div class="grid">
+                <a href="/music/" class="card">
+                    <div class="icon">🎵</div>
+                    <h2>Music</h2>
+                    <span>Listen to your collection</span>
+                </a>
+                <a href="/video/" class="card">
+                    <div class="icon">🎬</div>
+                    <h2>Video</h2>
+                    <span>Watch your favorite movies</span>
+                </a>
+            </div>
+        </div>
+
+        <script>
+            async function fetchConfig() {
+                try {
+                    const response = await fetch('/api/config');
+                    const config = await response.json();
+                    if (config.name) {
+                        document.getElementById('server-name').innerText = config.name;
+                    }
+                } catch (e) {}
+            }
+            fetchConfig();
+        </script>
+    </body>
+</html>

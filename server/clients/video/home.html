@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Macro - Video</title>
+    <meta name="description" content="Your personal video collection, self-hosted and streamed from your Macro server.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #000000;
+            --accent: #ffffff;
+            --accent2: #ffffff;
+            --text: #ffffff;
+            --text-dim: #ffffff;
+            --card-bg: #000000;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* ── Navbar ── */
+        #navbar {
+            height: 68px;
+            background: #000;
+            border-bottom: 2px solid #fff;
+            display: flex;
+            align-items: center;
+            padding: 0 4%;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 20;
+            gap: 24px;
+        }
+
+        .logo {
+            font-family: 'Times New Roman', Times, serif;
+            color: var(--text);
+            font-size: 2rem;
+            font-weight: 700;
+            text-decoration: none;
+            letter-spacing: 2px;
+            flex-shrink: 0;
+        }
+
+        .nav-links { display: flex; gap: 20px; flex-grow: 1; }
+        .nav-link {
+            font-family: 'Roboto', sans-serif;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: 1px solid #fff;
+            padding: 6px 12px;
+        }
+        .nav-link:hover { background: #fff; color: #000; }
+
+        .nav-search {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #nav-search-input {
+            background: #000;
+            border: 2px solid #fff;
+            border-radius: 0;
+            color: var(--text);
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            outline: none;
+            width: 200px;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .btn-home {
+            font-family: 'Roboto', sans-serif;
+            color: #000;
+            background: #fff;
+            text-decoration: none;
+            font-size: 0.82rem;
+            margin-left: auto;
+            white-space: nowrap;
+            padding: 8px 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* ── Hero ── */
+        #hero {
+            height: 70vh;
+            background: #000;
+            border-bottom: 4px solid #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 4%;
+            padding-top: 68px;
+        }
+
+        #hero .eyebrow {
+            font-family: 'Roboto', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 12px;
+            border-left: 4px solid #fff;
+            padding-left: 12px;
+        }
+        #hero h1 {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: clamp(3rem, 8vw, 5rem);
+            font-weight: 700;
+            max-width: 800px;
+            line-height: 1;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+        #hero p {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 1.2rem;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        /* ── Content sections ── */
+        .content-section {
+            padding: 40px 4%;
+            background: #000;
+        }
+
+        .section-title {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            border-bottom: 2px solid #fff;
+            padding-bottom: 8px;
+            display: inline-block;
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .video-card {
+            position: relative;
+            aspect-ratio: 16/9;
+            background: #000;
+            border: 2px solid #fff;
+            border-radius: 0;
+            overflow: hidden;
+            cursor: pointer;
+            transition: none;
+        }
+        .video-card:hover {
+            background: #fff;
+        }
+        .video-card:hover .video-title, 
+        .video-card:hover .video-meta {
+            color: #000;
+        }
+
+        .video-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            background: #000;
+            color: #fff;
+        }
+        .video-card:hover .video-placeholder {
+            background: #fff;
+            color: #000;
+        }
+
+        .video-info {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 10px;
+            background: rgba(0,0,0,0.8);
+            border-top: 1px solid #fff;
+        }
+        .video-card:hover .video-info { background: #fff; }
+
+        .video-title {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-transform: uppercase;
+        }
+        .video-meta {
+            font-family: 'Roboto', sans-serif;
+            font-size: 0.75rem;
+            margin-top: 3px;
+        }
+
+        .play-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            opacity: 0;
+        }
+        .video-card:hover .play-overlay { opacity: 1; }
+        .play-circle {
+            width: 56px;
+            height: 56px;
+            border-radius: 0;
+            background: #000;
+            border: 2px solid #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #fff;
+        }
+
+        .empty-msg {
+            padding: 60px 20px;
+            text-align: center;
+            border: 2px solid #fff;
+        }
+        .empty-msg h2 { font-family: 'Times New Roman', Times, serif; font-size: 2rem; margin-bottom: 8px; }
+
+        /* ── Player modal ── */
+        #player-modal {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            display: none;
+            z-index: 100;
+            flex-direction: column;
+        }
+
+        #player-topbar {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            gap: 16px;
+            background: #000;
+            border-bottom: 2px solid #fff;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 110;
+        }
+
+        #playing-title {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+        }
+
+        .close-player {
+            margin-left: auto;
+            color: #000;
+            background: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            font-weight: 700;
+        }
+
+        video { width: 100%; height: 100%; object-fit: contain; }
+    </style>
+</head>
+<body>
+    <div id="navbar">
+        <div class="logo">MACRO</div>
+        <nav class="nav-links">
+            <a href="#" class="nav-link">Home</a>
+            <a href="#" class="nav-link">All Videos</a>
+        </nav>
+        <div class="nav-search">
+            <input type="text" id="nav-search-input" placeholder="Search videos..." oninput="filterVideos(this.value)">
+        </div>
+        <a href="/" class="btn-home">← Dashboard</a>
+    </div>
+
+    <div id="hero">
+        <p class="eyebrow" id="server-name-label">Macro Server</p>
+        <h1>Your Media.<br>Your Rules.</h1>
+        <p>Stream your high-quality video collection from anywhere. No subscriptions. No tracking. Just Macro.</p>
+    </div>
+
+    <div class="content-section">
+        <h2 class="section-title">Browse Library</h2>
+        <div id="video-list" class="video-grid">
+            <div class="empty-msg"><p>Loading...</p></div>
+        </div>
+    </div>
+
+    <div id="player-modal">
+        <div id="player-topbar">
+            <span id="playing-title"></span>
+            <button class="close-player" onclick="closePlayer()" title="Close">✕</button>
+        </div>
+        <video id="video-player" controls></video>
+    </div>
+
+    <script>
+        const videoPlayer = document.getElementById('video-player');
+        const playerModal = document.getElementById('player-modal');
+        let allVideos = [];
+
+        // ── Navbar scroll effect ──
+        window.addEventListener('scroll', () => {
+            document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 10);
+        });
+
+        // ── Player ──
+        function playVideo(id, title) {
+            videoPlayer.src = `/api/stream/video/${id}`;
+            document.getElementById('playing-title').textContent = title;
+            playerModal.style.display = 'flex';
+            videoPlayer.play();
+            if (videoPlayer.requestFullscreen) videoPlayer.requestFullscreen().catch(() => {});
+        }
+
+        function closePlayer() {
+            videoPlayer.pause();
+            playerModal.style.display = 'none';
+            videoPlayer.src = '';
+            if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+        }
+
+        // Close with Escape
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && playerModal.style.display !== 'none') closePlayer();
+        });
+
+        // ── Render ──
+        function renderVideos(videos) {
+            const list = document.getElementById('video-list');
+            list.innerHTML = '';
+
+            if (!videos || videos.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-msg">
+                        <h2>No videos found</h2>
+                        <p>Run a scan from the Macro Manager to index your video files.</p>
+                    </div>`;
+                return;
+            }
+
+            videos.forEach(video => {
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                card.onclick = () => playVideo(video.id, video.title);
+                card.innerHTML = `
+                    <div class="video-placeholder">🎬</div>
+                    <div class="play-overlay"><div class="play-circle">▶</div></div>
+                    <div class="video-info">
+                        <div class="video-title">${escHtml(video.title)}</div>
+                        <div class="video-meta">${escHtml(video.resolution || '')}${video.creator && video.creator !== 'Unknown Creator' ? ' • ' + escHtml(video.creator) : ''}</div>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function escHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str || '';
+            return d.innerHTML;
+        }
+
+        function filterVideos(query) {
+            query = query.toLowerCase().trim();
+            const filtered = query
+                ? allVideos.filter(v => (v.title || '').toLowerCase().includes(query))
+                : allVideos;
+            renderVideos(filtered);
+        }
+
+        // ── Fetch ──
+        async function fetchVideos() {
+            try {
+                const res = await fetch('/api/library/video');
+                allVideos = await res.json();
+                renderVideos(allVideos);
+            } catch (e) {
+                document.getElementById('video-list').innerHTML = '<div class="empty-msg"><p>Error loading videos.</p></div>';
+            }
+        }
+
+        async function fetchConfig() {
+            try {
+                const res = await fetch('/api/config');
+                const config = await res.json();
+                if (config.name) {
+                    document.getElementById('server-name-label').textContent = config.name;
+                    document.title = `Macro - ${config.name}`;
+                }
+            } catch (e) {}
+        }
+
+        fetchConfig();
+        fetchVideos();
+    </script>
+</body>
+</html>
